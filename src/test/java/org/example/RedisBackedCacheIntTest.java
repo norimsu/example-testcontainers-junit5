@@ -6,16 +6,27 @@ import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.GenericContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.utility.DockerImageName;
 
 import redis.clients.jedis.Jedis;
 
+@Testcontainers
 class RedisBackedCacheIntTest {
+
+	@Container
+	private final GenericContainer<?> redis = new GenericContainer<>(DockerImageName.parse("redis:5.0.3-alpine")).withExposedPorts(6379);
 
 	private RedisBackedCache cache;
 
 	@BeforeEach
 	public void setUp() {
-		final Jedis jedis = new Jedis("localhost", 6379);
+		final String address = redis.getHost();
+		final Integer port = redis.getFirstMappedPort();
+
+		final Jedis jedis = new Jedis(address, port);
 
 		cache = new RedisBackedCache(jedis, "test");
 	}
